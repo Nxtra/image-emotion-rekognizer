@@ -2,3 +2,6 @@
 .idea
 .serverless
 .sam
+picture.jpeg
+samconfig.toml
+/picture.jpeg

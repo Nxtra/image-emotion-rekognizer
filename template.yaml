@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  ImagesBucketName:
+    Type: String
+    Default: people-faces-images-bucket
+    Description: Enter the name of your bucket
+
+Resources:
+  EmotionRekognitionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src/EmotionRekognitionFunction
+      Handler: function.handler
+      Runtime: python3.7
+      Timeout: 10
+      ReservedConcurrentExecutions: 1
+      DeadLetterQueue:
+        Type: SQS
+        TargetArn: !GetAtt ImageEventDeadLetterQueue.Arn
+      Environment:
+        Variables:
+          IMAGE_FEATURES_TABLE: !Ref ImageFeaturesTable
+      Policies:
+        - RekognitionDetectOnlyPolicy: {}
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ImageFeaturesTable
+        - S3ReadPolicy:
+            BucketName: !Ref ImagesBucketName
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt ImageEventDeadLetterQueue.QueueName
+      Events:
+        S3BucketEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref ImageBucket
+            Events: s3:ObjectCreated:*
+
+  ImageBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref ImagesBucketName
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  ImageFeaturesTable:
+    Type: 'AWS::DynamoDB::Table'
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: imageId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: imageId
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      TableName: 'ImageFeaturesTable'
+
+  ImageEventDeadLetterQueue:
+    Type : "AWS::SQS::Queue"
+    Properties:
+      QueueName: images-s3-events-dead-letter-queue
