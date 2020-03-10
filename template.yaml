@@ -36,6 +36,31 @@ Resources:
           Properties:
             Bucket: !Ref ImageBucket
             Events: s3:ObjectCreated:*
+  GetFeaturesAsJsonFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ./src/GetFeaturesAsJsonFunction
+      Handler: function.handler
+      Runtime: nodejs12.x
+      Timeout: 15
+      Environment:
+        Variables:
+          IMAGE_FEATURES_TABLE: !Ref ImageFeaturesTable
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref ImageFeaturesTable
+      Events:
+        HttpPost:
+          Type: Api
+          Properties:
+            Path: '/features'
+            Method: get
+            RestApiId: !Ref RestApi
+
+  RestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: dev
 
   ImageBucket:
     Type: AWS::S3::Bucket
