@@ -37,15 +37,23 @@ def save_emotions(image_id, emotions):
         'HAPPY': get_confidence_for_emotion_type(emotions, "HAPPY"),
         'CALM': get_confidence_for_emotion_type(emotions, "CALM"),
         'FEAR': get_confidence_for_emotion_type(emotions, "FEAR"),
-        'SAD': get_confidence_for_emotion_type(emotions, "SAD")
+        'ANGRY': get_confidence_for_emotion_type(emotions, "ANGRY"),
+        'SAD': get_confidence_for_emotion_type(emotions, "SAD"),
+        'UNKNOWN': get_confidence_for_emotion_type(emotions, "UNKNOWN")
     })
 
 
 def get_confidence_for_emotion_type(emotions, emotion_type):
-    confidence = list(map(itemgetter("Confidence"), filter(lambda d: d["Type"] == emotion_type, emotions)))[0]
+    confidence = safe_list_get(list(map(itemgetter("Confidence"), filter(lambda d: d["Type"] == emotion_type, emotions))), 0)
     return convert_to_decimal(confidence)
 
 
 def convert_to_decimal(float_number):
     return Decimal(str(round(float_number, 4)))
 
+
+def safe_list_get(l, idx):
+    try:
+        return l[idx]
+    except IndexError:
+        return 0
