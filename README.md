@@ -1,8 +1,9 @@
 #  image-emotion-rekognizer
 
-This lambda is finds the emotions on a picture and saves the result in dynamodb.
-It is triggered by an upload of a picture to an S3 bucket.
-It recognizes the emotions on the picture and stores the result in dynamodb.
+This lambda is finds the emotions on a picture and saves the result in dynamodb.  
+It is triggered by an upload of a picture to an S3 bucket.  
+It recognizes the emotions on the picture and stores the result in dynamodb.  
+You can retrieve these emotions via the API.
 
 ![architecture](git/img/architecture.png)
 
